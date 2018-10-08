@@ -1,0 +1,33 @@
+body {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  background-color: #fafafa;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 900;
+}
+
+.checked::after {
+  content: "\F00C";
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+  font-size: 14px;
+  display: block;
+  background-color: #18BC9C;
+  position: absolute;
+  top: 0;
+  right: 15px;
+  color: white;
+  padding: 10px 15px;
+}
+
+.image-select input[type=checkbox] {
+  display: none;
+}
+
