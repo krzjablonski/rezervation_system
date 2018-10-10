@@ -11,6 +11,10 @@ class Room extends Model
   }
   public function feature()
   {
-    return $this->belongsToMany('App\Room', 'feature_room', 'room_id', 'feature_id');
+    return $this->belongsToMany('App\Feature', 'feature_room', 'room_id', 'feature_id');
+  }
+  public function booking()
+  {
+    return $this->hasMany('App\Booking');
   }
 }

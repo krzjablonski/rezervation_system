@@ -18,3 +18,7 @@ Route::resource('albums', 'AlbumController');
 Route::resource('rooms', 'RoomController');
 
 Route::resource('features', 'FeatureController', ['except'=>['create', 'show']]);
+
+Route::get('booking/create', 'BookingController@create')->name('bookings.create');
+Route::get('booking', 'BookingController@index')->name('bookings.index');
+Route::post('booking', 'BookingController@filter')->name('bookings.filter');;
