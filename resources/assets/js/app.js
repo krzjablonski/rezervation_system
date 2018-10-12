@@ -18,5 +18,36 @@ window.Vue = require('vue');
 Vue.component('example-component', require('./components/ExampleComponent.vue'));
 
 const app = new Vue({
-    el: '#app'
+    el: '#app',
+    data: {
+      check_in: '',
+      check_out: '',
+      rooms: {},
+      search: true,
+      selectedRoomId: '',
+      selectedRoomName: ''
+    },
+    methods: {
+      getAvRooms: function(){
+        axios.post('/api/rooms', {
+          check_in: this.check_in,
+          check_out: this.check_out
+        }).then((response)=>{
+          this.rooms = response.data.data
+          this.search = false
+        });
+      },
+      selectRoom: function(id, name){
+        this.selectedRoomId = id
+        this.selectedRoomName = name
+      },
+      resetAll: function(){
+        this.check_in = '',
+        this.check_out = '',
+        this.search = true,
+        this.rooms = {},
+        this.selectedRoomId = '',
+        this.selectedRoomName = ''
+      }
+    }
 });

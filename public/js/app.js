@@ -13906,7 +13906,35 @@ window.Vue = __webpack_require__(36);
 Vue.component('example-component', __webpack_require__(39));
 
 var app = new Vue({
-  el: '#app'
+  el: '#app',
+  data: {
+    check_in: '',
+    check_out: '',
+    rooms: {},
+    search: true,
+    selectedRoomId: '',
+    selectedRoomName: ''
+  },
+  methods: {
+    getAvRooms: function getAvRooms() {
+      var _this = this;
+
+      axios.post('/api/rooms', {
+        check_in: this.check_in,
+        check_out: this.check_out
+      }).then(function (response) {
+        _this.rooms = response.data.data;
+        _this.search = false;
+      });
+    },
+    selectRoom: function selectRoom(id, name) {
+      this.selectedRoomId = id;
+      this.selectedRoomName = name;
+    },
+    resetAll: function resetAll() {
+      this.check_in = '', this.check_out = '', this.search = true, this.rooms = {}, this.selectedRoomId = '', this.selectedRoomName = '';
+    }
+  }
 });
 
 /***/ }),

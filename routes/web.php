@@ -11,14 +11,22 @@
 |
 */
 
-Route::resource('photos', 'PhotoController', ['except' => 'create']);
+Route::middleware('auth')->prefix('admin')->group(function () {
+  Route::resource('photos', 'PhotoController', ['except' => 'create']);
 
-Route::resource('albums', 'AlbumController');
+  Route::resource('albums', 'AlbumController');
 
-Route::resource('rooms', 'RoomController');
+  Route::resource('rooms', 'RoomController');
 
-Route::resource('features', 'FeatureController', ['except'=>['create', 'show']]);
+  Route::resource('features', 'FeatureController', ['except'=>['create', 'show']]);
 
-Route::get('booking/create', 'BookingController@create')->name('bookings.create');
-Route::get('booking', 'BookingController@index')->name('bookings.index');
-Route::post('booking', 'BookingController@filter')->name('bookings.filter');;
+  Route::get('booking/create', 'BookingController@create')->name('bookings.create');
+  Route::post('booking/create', 'BookingController@store')->name('bookings.store');
+
+  Route::get('booking', 'BookingController@index')->name('bookings.index');
+  Route::post('booking', 'BookingController@filter')->name('bookings.filter');
+});
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');
