@@ -25,7 +25,9 @@ const app = new Vue({
       rooms: {},
       search: true,
       selectedRoomId: '',
-      selectedRoomName: ''
+      selectedRoomName: '',
+      error: false,
+      errorMgs: ''
     },
     methods: {
       getAvRooms: function(){
@@ -33,8 +35,18 @@ const app = new Vue({
           check_in: this.check_in,
           check_out: this.check_out
         }).then((response)=>{
-          this.rooms = response.data.data
-          this.search = false
+            if (response.data.data.error){
+                this.error = true
+                this.errorMsg = response.data.data.error
+            }else{
+                this.rooms = response.data.data
+                this.search = false
+                this.error = false
+                this.errorMsg = ''
+            }
+        }).catch((response)=>{
+            this.error = true
+            this.errorMsg = response.data.error
         });
       },
       selectRoom: function(id, name){

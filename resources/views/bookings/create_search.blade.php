@@ -41,6 +41,13 @@
     </div>
   </div>
   <div class="row">
+      <div class="col-md-12 mt-3">
+          <div v-if="error" class="alert alert-warning" role="alert">
+              @{{ errorMsg }}
+          </div>
+      </div>
+  </div>
+  <div class="row">
     <div v-for="room in rooms" class="col-sm-12 pt-4">
       <div class="">
         <div class="row">
@@ -69,7 +76,6 @@
   </div>
 
 
-  <!-- Modal -->
   <!-- Modal -->
   <div class="modal fade" id="bookingModal" tabindex="-1" role="dialog" aria-labelledby="Nowa rezerwacja" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">

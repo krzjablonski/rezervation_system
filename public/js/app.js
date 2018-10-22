@@ -13913,7 +13913,9 @@ var app = new Vue({
     rooms: {},
     search: true,
     selectedRoomId: '',
-    selectedRoomName: ''
+    selectedRoomName: '',
+    error: false,
+    errorMgs: ''
   },
   methods: {
     getAvRooms: function getAvRooms() {
@@ -13923,8 +13925,18 @@ var app = new Vue({
         check_in: this.check_in,
         check_out: this.check_out
       }).then(function (response) {
-        _this.rooms = response.data.data;
-        _this.search = false;
+        if (response.data.data.error) {
+          _this.error = true;
+          _this.errorMsg = response.data.data.error;
+        } else {
+          _this.rooms = response.data.data;
+          _this.search = false;
+          _this.error = false;
+          _this.errorMsg = '';
+        }
+      }).catch(function (response) {
+        _this.error = true;
+        _this.errorMsg = response.data.error;
       });
     },
     selectRoom: function selectRoom(id, name) {

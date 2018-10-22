@@ -24,7 +24,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
   Route::post('booking/create', 'BookingController@store')->name('bookings.store');
 
   Route::get('booking', 'BookingController@index')->name('bookings.index');
-  Route::post('booking', 'BookingController@filter')->name('bookings.filter');
+  Route::post('booking', 'BookingController@index')->name('bookings.filter');
 });
 
 Auth::routes();

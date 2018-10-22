@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\Redirect;
 use Session;
 use App\Feature;
 use App\Album;
@@ -76,10 +76,13 @@ class RoomController extends Controller
         $room->size = $size;
         $room->album_id = $album_id;
 
-        if ($room->save()) {
+        try{
+          $room->save();
           $room->feature()->sync($features);
           Session::flash('succes', 'Dodano pokój');
           return redirect()->route('rooms.index');
+        }catch(Exception $e){
+          return Redirect::back()->withErrors(['error' => $e->getMessage()]);
         }
 
     }
@@ -103,7 +106,12 @@ class RoomController extends Controller
      */
     public function edit($id)
     {
-        $room = Room::find(filter_var($id, FILTER_SANITIZE_NUMBER_INT));
+        try {
+          $room = Room::findOrFail(filter_var($id, FILTER_SANITIZE_NUMBER_INT));
+        } catch (\Exception $e) {
+          return redirect()->route('rooms.index')->withErrors(['ModelError' => $e->getMessage()]);
+        }
+
         $features = Feature::all();
         $featuresArr = array();
         foreach ($room->feature as $feature) {
@@ -126,6 +134,13 @@ class RoomController extends Controller
      */
     public function update(Request $request, $id)
     {
+
+      try {
+        $room = Room::findOrFail(filter_var($id, FILTER_SANITIZE_NUMBER_INT));
+      } catch (\Exception $e) {
+        Redirect::back()->withErrors(['ModelError' => $e->getMessage()]);
+      }
+
       $this->validate($request, array(
         'room_name' => 'required|max:255',
         'room_description' => 'required',
@@ -145,17 +160,20 @@ class RoomController extends Controller
         $features[] = filter_var($feature, FILTER_SANITIZE_NUMBER_INT);
       }
 
-      $room = Room::find(filter_var($id, FILTER_SANITIZE_NUMBER_INT));
+
       $room->room_name = $room_name;
       $room->room_description = $room_description;
       $room->beds = $beds;
       $room->size = $size;
       $room->album_id = $album_id;
 
-      if ($room->save()) {
+      try{
+        $room->save();
         $room->feature()->sync($features);
         Session::flash('succes', 'Dodano pokój');
         return redirect()->route('rooms.index');
+      }catch(Exception $e){
+        Redirect::back()->withErrors(['error' => $e->getMessage()]);
       }
     }
 
@@ -169,11 +187,12 @@ class RoomController extends Controller
     {
         $room = Room::find($id);
         $room->feature()->detach();
-        if ($room->delete()) {
+        try{
+          $room->delete();
           Session::flash('success', 'Usunięto pokój');
           redirect()->route('rooms.index');
-        }else{
-          Redirect::back()->withErrors('error', 'Nie można usunąć tego pokoju.');
+        }catch(Exception $e){
+          Redirect::back()->withErrors(['error' => $e->getMessage()]);
         }
     }
 }

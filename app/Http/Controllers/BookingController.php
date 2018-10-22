@@ -2,46 +2,50 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\RoomsNotFoundException;
+use App\Http\Resources\ErrorResource;
 use Illuminate\Http\Request;
+use App\Repositories\BookingRepository;
 use App\Booking;
-use App\Room;
-
-use Illuminate\Support\Facades\URL;
 
 use Session;
 use Illuminate\Support\Facades\Redirect;
-use App\Http\Resources\RoomResource;
 use App\Http\Resources\RoomResourceCollection;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $bookings = Booking::all();
 
-        return view('bookings.index')->withBookings($bookings);
+    protected $bookingRepo;
+
+    public function __construct(BookingRepository $bookingRepo)
+    {
+      $this->bookingRepo = $bookingRepo;
     }
 
     /**
-     * Display a listing of the resource with filter.
+     * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @return view bookings.index
      */
-    public function filter(Request $request)
+    public function index(Request $request)
     {
-        $this->validate($request, array(
-          'check_in' => 'date',
-          'check_out' => 'date'
-        ));
+        if ($request->check_in || $request->check_out){
 
-        $bookingsId = $this->checkBooking($request->check_in, $request->check_out);
+            // Validate request if there where send data
+            $this->validate($request, [
+                'check_in' => 'date',
+                'check_out' => 'date'
+            ]);
 
-        $bookings = Booking::find($bookingsId);
+            // Get bookings from repository by filter method
+            $bookings = $this->bookingRepo->filter($request->check_in, $request->check_out);
+        }else{
+
+            // If there where no check in and check out given get all bookings
+            $bookings = Booking::all();
+
+        }
 
         return view('bookings.index')->withBookings($bookings);
     }
@@ -59,23 +63,22 @@ class BookingController extends Controller
     /**
      * Select available rooms.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return App\Http\Resources\RoomResourceCollection
+     * @param  \Illuminate\Http\Request $request
+     * @return RoomResourceCollection
      */
     public function search(Request $request)
     {
-      $this->validate($request, array(
+      $this->validate($request, [
         'check_in' => 'required|date',
         'check_out' => 'required|date'
-      ));
+      ]);
 
-      $bookingsArr = $this->checkRoom($request->check_in, $request->check_out);
-
-      $rooms = Room::whereNotIn('id', $bookingsArr)->with('feature')->with('album.photos')->get();
-
-      foreach ($rooms as $room) {
-        $room->image_url = URL::to('/').'/uploads/'.$room->album->photos->first()->photo_path.'/'.$room->album->photos->first()->photo_thumbnail;
+      try{
+          $rooms = $this->bookingRepo->search($request->check_in, $request->check_out);
+      }catch (RoomsNotFoundException $e){
+          return new ErrorResource($e->getMessage());
       }
+
 
       return new RoomResourceCollection($rooms);
 
@@ -85,7 +88,7 @@ class BookingController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(Request $request)
     {
@@ -98,7 +101,15 @@ class BookingController extends Controller
           'customer_phone' => 'required|alpha_dash'
         ));
 
+        $bookings = $this->bookingRepo->check($request->check_in, $request->check_out);
 
+        $bookingsArr = array();
+
+        $bookings->map(function ($item, $key){
+            if ($key == 'id') {
+                $bookingsArr[] = $item;
+            }
+        });
 
         if(in_array($request->room_id, $bookingsArr)){
           return Redirect::back()->withErrors(['error' => 'Wybrany pokój jest zarezerwowany w tym terminie']);
@@ -112,11 +123,7 @@ class BookingController extends Controller
         $booking->customer_email = filter_var($request->customer_email, FILTER_SANITIZE_SPECIAL_CHARS);
         $booking->customer_phone = filter_var($request->customer_phone, FILTER_SANITIZE_STRING);
 
-        if ($booking->save()) {
-          return redirect()->route('bookings.index');
-        }else{
-          return Redirect::back()->withErrors(['error' => 'Wystąpił problem z bazą danych. Spórbuj jeszcze raz']);
-        }
+        return $booking->save() ? redirect()->route('bookings.index') : Redirect::back()->withErrors(['error' => 'Wystąpił problem z bazą danych. Spórbuj jeszcze raz']);
     }
 
     /**
@@ -127,7 +134,7 @@ class BookingController extends Controller
      */
     public function edit($id)
     {
-        //
+        //TODO 
     }
 
     /**
@@ -139,7 +146,7 @@ class BookingController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        //TODO
     }
 
     /**
@@ -150,38 +157,6 @@ class BookingController extends Controller
      */
     public function destroy($id)
     {
-        //
-    }
-
-    protected function checkBooking($check_in, $check_out)
-    {
-      $bookings = Booking::select('id')
-                        ->where([
-                          ['check_out', '>', $check_in],
-                          ['check_in', '<', $check_out]
-                        ])
-                        ->get();
-
-      $bookingsArr = array();
-      foreach($bookings as $booking){
-        $bookingArr[] = $booking->id;
-      }
-      return $bookingArr;
-    }
-
-    protected function checkRoom($check_in, $check_out)
-    {
-      $bookings = Booking::select('room_id')
-                        ->where([
-                          ['check_out', '>', $check_in],
-                          ['check_in', '<', $check_out]
-                        ])
-                        ->get();
-
-      $bookingsArr = array();
-      foreach($bookings as $booking){
-        $bookingsArr[] = $booking->room_id;
-      }
-      return $bookingsArr;
+        //TODO
     }
 }
